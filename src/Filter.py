@@ -1,8 +1,6 @@
 import os
 from dotenv import load_dotenv
-from google import genai
 from langchain_google_genai import GoogleGenerativeAI
-from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 

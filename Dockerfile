@@ -8,13 +8,14 @@ WORKDIR /app
 COPY requirements.txt ./
 
 # Install dependencies if requirements.txt exists
-RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the project files
-COPY . .
+COPY src/ ./src/
+COPY .env .env
 
 # Set environment variables (optional)
 ENV PYTHONUNBUFFERED=1
 
 # Default command (update as needed)
-CMD ["python"]
+CMD ["python", "src/Filter.py"]
