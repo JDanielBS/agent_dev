@@ -1,3 +1,5 @@
+google-generativeai
+google-genai
 langchain
-llama-cpp-python
+langchain-google-genai
 python-dotenv

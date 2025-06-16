@@ -1,15 +1,14 @@
 import os
+from dotenv import load_dotenv
+from google import genai
+from langchain_google_genai import GoogleGenerativeAI
 from langchain.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import HumanMessage
-from langchain_community.llms import LlamaCpp
 
 load_dotenv()
 
-model_path = os.getenv("MODEL_PATH")
-api_key = os.getenv("API_KEY")
-debug = os.getenv("DEBUG")
-
+# Función para crear una chain dinámica según modelo
 filter_prompt = PromptTemplate(
     input_variables=["user_input"],
     template=(
@@ -27,27 +26,17 @@ filter_prompt = PromptTemplate(
     )
 )
 
-llm_path = "/ruta/a/llama2-7b.gguf"
-classifier_llm = LlamaCpp(
-    model_path=llm_path,
-    temperature=0.0,
-    n_ctx=2048,
-    verbose=False
-)
+# Cadena para el modelo
+llm = GoogleGenerativeAI(model="gemma-3-27b-it", api_key=os.getenv("API_KEY"))
 
-filter_chain = LLMChain(
-    llm=classifier_llm,
-    prompt=filter_prompt,
-    output_key="classification"
-)
+pipeline = filter_prompt | llm | StrOutputParser()
 
-def filter_question(user_question: str):
-    result = filter_chain.invoke({"user_input": user_question})
-    resp = result["classification"].strip().upper()
-    if resp.startswith("YES"):
+def filter_question(q: str):
+    resp = pipeline.invoke({"user_input": q}).strip()
+    if resp.upper().startswith("YES"):
         return True, None
     else:
-        apology = resp.split("Lo siento,")[-1].strip()
+        apology = resp.split("Lo siento, ")[-1].strip()
         return False, f"Lo siento,{apology}"
 
 if __name__ == "__main__":
@@ -57,9 +46,10 @@ if __name__ == "__main__":
             print("Agente: Hasta luego.")
             break
 
-        allowed, message = filter_question(text)
-        if not allowed:
-            print(f"\n Agente: {message}")
+        ok, msg = filter_question(text)
+
+        if not ok:
+            print(f"\n Agente: {msg}")
         else:
             print("\n Agente: Pregunta válida. Envío al LLM especializado…")
             # aquí llamarías a tu chain especializada
